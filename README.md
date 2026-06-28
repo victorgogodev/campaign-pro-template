@@ -1,16 +1,64 @@
-# React + Vite
+# Campaign Pro Template
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Kenya 2027 election campaign website template built with React, Tailwind CSS, and Node.js.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React + Vite
+- Tailwind CSS
+- Node.js + Express
+- M-Pesa Daraja API
+- Africa's Talking (SMS)
 
-## React Compiler
+## Productized Services
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Product      | Description                                                    | Pricing                  |
+| ------------ | -------------------------------------------------------------- | ------------------------ |
+| Campaign Pro | Candidate website with M-Pesa donations + volunteer management | KSh 45K–200K             |
+| Results Live | Real-time election night dashboard with Kenya constituency map | KSh 150K–400K            |
+| Campaign Ops | Internal campaign management SaaS with SMS broadcasts          | KSh 80K setup + retainer |
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+src/
+  components/
+    Nav.jsx
+    Hero.jsx
+    Issues.jsx
+    About.jsx
+    VolunteerForm.jsx
+    Donate.jsx
+    Events.jsx
+    Footer.jsx
+  constants/
+    theme.js
+  App.jsx
+```
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+## Branch Strategy
+
+- Never push directly to `main`
+- Always use `feature/*` branches with PRs
+- Feature branches are retained post-merge until project completion
+
+## Commit Convention
+
+```
+feat(scope):      new feature
+fix(scope):       bug fix
+chore(scope):     dependencies, config, tooling
+docs(scope):      documentation only
+refactor(scope):  restructure, no behaviour change
+```
+
+## Built By
+
+[Victor Gogo](https://github.com/victorgogodev) — Frontend Engineer, building for the African web.
