@@ -1,128 +1,106 @@
 import { C } from '../constants/theme';
-
-const events = [
-  {
-    month: 'AUG',
-    day: '3',
-    title: 'Kangemi Community Meeting',
-    location: 'Kangemi Social Hall',
-    time: '2:00 PM'
-  },
-  {
-    month: 'AUG',
-    day: '10',
-    title: 'Youth Town Hall — Digital Economy',
-    location: 'Westgate Mall Grounds',
-    time: '10:00 AM'
-  },
-  {
-    month: 'AUG',
-    day: '17',
-    title: "Women's Forum — Healthcare & Safety",
-    location: 'Mountain View Primary',
-    time: '11:00 AM'
-  }
-];
+import { EVENTS } from '../constants/candidate';
 
 export default function Events() {
   return (
-    <section id='events' style={{ padding: '5rem 1.5rem', background: C.bg }}>
-      <div style={{ maxWidth: 1060, margin: '0 auto' }}>
-        <div
-          style={{
-            color: C.gold,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 3.5,
-            marginBottom: 8
-          }}
-        >
-          ON THE GROUND
+    <section id='events' style={{ background: C.white, padding: '80px 0' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px' }}>
+        {/* Eyebrow + heading — centered */}
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <span
+            style={{
+              display: 'inline-block',
+              background: C.greenLight,
+              color: C.green,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              padding: '4px 16px',
+              borderRadius: 999,
+              marginBottom: 16
+            }}
+          >
+            On the Ground
+          </span>
+          <h2
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color: C.text,
+              margin: '0 0 12px'
+            }}
+          >
+            Upcoming Events
+          </h2>
+          <p style={{ color: C.muted, margin: 0 }}>
+            Come meet the team. Bring a neighbour.
+          </p>
         </div>
-        <h2
-          style={{
-            color: C.green,
-            fontSize: '1.9rem',
-            fontWeight: 800,
-            marginBottom: '2.5rem'
-          }}
-        >
-          Upcoming Events
-        </h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {events.map(({ month, day, title, location, time }) => (
+        {/* Event list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {EVENTS.map((ev, i) => (
             <div
-              key={title}
+              key={i}
               style={{
                 background: C.white,
                 borderRadius: 12,
-                padding: '1.25rem 1.5rem',
-                border: `1px solid ${C.border}`,
+                padding: '20px 24px',
                 display: 'flex',
-                alignItems: 'center',
-                gap: '1.25rem',
-                cursor: 'pointer'
+                alignItems: 'flex-start',
+                gap: 24,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
               }}
             >
               {/* Date block */}
               <div
                 style={{
                   background: C.green,
+                  color: C.white,
                   borderRadius: 8,
-                  padding: '8px 12px',
+                  padding: '12px 16px',
                   textAlign: 'center',
-                  minWidth: 50,
+                  minWidth: 56,
                   flexShrink: 0
                 }}
               >
-                <div
-                  style={{
-                    color: C.gold,
-                    fontSize: 9,
-                    fontWeight: 700,
-                    letterSpacing: 1.5
-                  }}
-                >
-                  {month}
+                <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1 }}>
+                  {ev.day}
                 </div>
                 <div
                   style={{
-                    color: C.white,
-                    fontSize: 22,
-                    fontWeight: 800,
-                    lineHeight: 1
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    marginTop: 4
                   }}
                 >
-                  {day}
+                  {ev.month}
                 </div>
               </div>
 
               {/* Details */}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: C.green, fontSize: 15 }}>
-                  {title}
-                </div>
-                <div
+              <div>
+                <h3
                   style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '1rem',
-                    marginTop: 4
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: C.text,
+                    margin: '0 0 6px'
                   }}
                 >
-                  <span style={{ color: C.muted, fontSize: 12 }}>
-                    📍 {location}
+                  {ev.title}
+                </h3>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, color: C.muted }}>
+                    🕐 {ev.time}
                   </span>
-                  <span style={{ color: C.muted, fontSize: 12 }}>
-                    🕐 {time}
+                  <span style={{ fontSize: 13, color: C.muted }}>
+                    📍 {ev.location}
                   </span>
                 </div>
-              </div>
-
-              {/* Chevron */}
-              <div style={{ color: C.border, fontSize: 18, flexShrink: 0 }}>
-                ›
               </div>
             </div>
           ))}

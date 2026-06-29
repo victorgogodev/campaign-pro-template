@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { C } from '../constants/theme';
+import { CANDIDATE } from '../constants/candidate';
 
-const navLinks = ['Issues', 'About', 'Events', 'Volunteer', 'Donate'];
+const navLinks = ['Home', 'Issues', 'About', 'Volunteer', 'Donate', 'Events'];
 
 function FooterLink({ href, children }) {
   const [hovered, setHovered] = useState(false);
@@ -44,10 +45,11 @@ export default function Footer() {
                   color: C.white,
                   fontWeight: 800,
                   fontSize: 17,
-                  letterSpacing: 1.5
+                  letterSpacing: 1.5,
+                  textTransform: 'uppercase'
                 }}
               >
-                HON. JANE WANJIKU
+                {CANDIDATE.name}
               </div>
               <div
                 style={{
@@ -55,10 +57,11 @@ export default function Footer() {
                   fontSize: 9,
                   letterSpacing: 3,
                   marginTop: 2,
-                  marginBottom: '1rem'
+                  marginBottom: '1rem',
+                  textTransform: 'uppercase'
                 }}
               >
-                WESTLANDS MP • 2027
+                {CANDIDATE.title} • {CANDIDATE.year}
               </div>
             </a>
             <p
@@ -68,8 +71,7 @@ export default function Footer() {
                 lineHeight: 1.7
               }}
             >
-              Together we'll build a Westlands that works for every resident,
-              not just a few.
+              {CANDIDATE.footerTagline}
             </p>
           </div>
 
@@ -113,9 +115,9 @@ export default function Footer() {
                 lineHeight: 2
               }}
             >
-              <div>info@janewanjiku.ke</div>
-              <div>0700 000 000</div>
-              <div>P.O. Box 00100, Nairobi</div>
+              <div>{CANDIDATE.email}</div>
+              <div>{CANDIDATE.phone}</div>
+              <div>{CANDIDATE.poBox}</div>
             </div>
           </div>
         </div>
@@ -126,16 +128,37 @@ export default function Footer() {
             paddingTop: '1.5rem',
             display: 'flex',
             flexWrap: 'wrap',
+            alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '.5rem'
+            gap: '.75rem'
           }}
         >
           <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 11 }}>
-            © 2027 Jane Wanjiku Campaign. All rights reserved.
+            © {CANDIDATE.year} {CANDIDATE.nameShort} Campaign. All rights
+            reserved.
           </span>
-          <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 11 }}>
-            Authorised under the Political Parties Act, 2011
-          </span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              flexWrap: 'wrap'
+            }}
+          >
+            <a
+              href='/privacy'
+              style={{
+                color: 'rgba(255,255,255,.45)',
+                fontSize: 11,
+                textDecoration: 'underline'
+              }}
+            >
+              Privacy Policy
+            </a>
+            <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 11 }}>
+              Authorised under the Political Parties Act, 2011
+            </span>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,15 +1,49 @@
 import { C } from '../constants/theme';
-
-const credentials = [
-  'UoN Graduate & CPA',
-  '10 yrs community service',
-  'Youth centre founder',
-  '500+ direct jobs created'
-];
+import { CANDIDATE, CREDENTIALS } from '../constants/candidate';
 
 export default function About() {
   return (
     <section id='about' style={{ background: C.green, padding: '5rem 1.5rem' }}>
+      {/* Section header — centered, consistent with other sections */}
+      <div
+        style={{ maxWidth: 1060, margin: '0 auto 3rem', textAlign: 'center' }}
+      >
+        <div
+          style={{
+            color: C.gold,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 3.5,
+            textTransform: 'uppercase',
+            marginBottom: 12
+          }}
+        >
+          About the Candidate
+        </div>
+        <h2
+          style={{
+            color: C.white,
+            fontSize: 'clamp(1.6rem, 5vw, 2.25rem)',
+            fontWeight: 800,
+            margin: '0 0 10px'
+          }}
+        >
+          {CANDIDATE.name}
+        </h2>
+        <p
+          style={{
+            color: 'rgba(255,255,255,.6)',
+            fontSize: 14,
+            maxWidth: 460,
+            margin: '0 auto',
+            lineHeight: 1.6
+          }}
+        >
+          The person behind the platform.
+        </p>
+      </div>
+
+      {/* Photo + narrative */}
       <div
         style={{
           maxWidth: 1060,
@@ -50,7 +84,7 @@ export default function About() {
                 color: C.green
               }}
             >
-              JW
+              {CANDIDATE.initials}
             </div>
             <span style={{ color: `${C.gold}80`, fontSize: 12 }}>
               Candidate Photo
@@ -70,7 +104,7 @@ export default function About() {
             }}
           >
             <div style={{ color: C.green, fontWeight: 800, fontSize: 18 }}>
-              10 yrs
+              {CANDIDATE.yearsOfService} yrs
             </div>
             <div style={{ color: C.green, fontSize: 10, fontWeight: 700 }}>
               COMMUNITY SERVICE
@@ -78,40 +112,18 @@ export default function About() {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Narrative */}
         <div>
-          <div
-            style={{
-              color: C.gold,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 3.5,
-              marginBottom: 12
-            }}
-          >
-            ABOUT THE CANDIDATE
-          </div>
-          <h2
-            style={{
-              color: C.white,
-              fontSize: '1.9rem',
-              fontWeight: 800,
-              marginBottom: '1rem'
-            }}
-          >
-            Hon. Jane Wanjiku
-          </h2>
           <p
             style={{
               color: 'rgba(255,255,255,.65)',
               fontSize: 14,
               lineHeight: 1.75,
+              marginTop: 0,
               marginBottom: '.85rem'
             }}
           >
-            Born and raised in Kangemi, Jane Wanjiku has spent the last decade
-            building small businesses, running a youth skills centre, and
-            advocating for Westlands residents at the county level.
+            {CANDIDATE.bio1}
           </p>
           <p
             style={{
@@ -121,42 +133,60 @@ export default function About() {
               marginBottom: '2rem'
             }}
           >
-            A University of Nairobi graduate and certified CPA, she brings
-            financial discipline and deep community understanding to every
-            policy she champions.
+            {CANDIDATE.bio2}
           </p>
 
-          {/* Credentials */}
+          {/* Track record — label centered, items left-aligned.
+              Column count lives in Tailwind classes (NOT inline style),
+              otherwise an inline grid-template-columns would override the
+              responsive breakpoint. */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '.75rem'
+              color: C.gold,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+              marginBottom: 14,
+              textAlign: 'center'
             }}
           >
-            {credentials.map((item) => (
+            Track Record
+          </div>
+          <div
+            className='grid grid-cols-1 sm:grid-cols-2'
+            style={{ gap: '1rem' }}
+          >
+            {CREDENTIALS.map((item) => (
               <div
                 key={item}
-                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10 }}
               >
                 <div
                   style={{
-                    width: 18,
-                    height: 18,
+                    width: 22,
+                    height: 22,
                     borderRadius: '50%',
                     background: C.gold,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    fontSize: 10,
+                    fontSize: 12,
                     color: C.green,
                     fontWeight: 800
                   }}
                 >
                   ✓
                 </div>
-                <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 13 }}>
+                <span
+                  style={{
+                    color: 'rgba(255,255,255,.9)',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    lineHeight: 1.4
+                  }}
+                >
                   {item}
                 </span>
               </div>
