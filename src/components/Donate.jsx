@@ -1,250 +1,541 @@
 import { useState } from 'react';
 import { C } from '../constants/theme';
+import { CANDIDATE, QUICK_AMOUNTS } from '../constants/candidate';
 
-const quickAmounts = ['100', '500', '1000', '2500'];
+function validatePhone(phone) {
+  const cleaned = phone.replace(/\s/g, '');
+  return (
+    /^(07|01)\d{8}$/.test(cleaned) ||
+    /^\+254\d{9}$/.test(cleaned) ||
+    /^254\d{9}$/.test(cleaned)
+  );
+}
 
 export default function Donate() {
-  const [amount, setAmount] = useState('');
+  const [tab, setTab] = useState('stk');
+
+  // STK state
+  const [amount, setAmount] = useState(null);
+  const [customAmount, setCustomAmount] = useState('');
   const [phone, setPhone] = useState('');
-  const [step, setStep] = useState(1); // 1=form, 2=processing, 3=success
+  const [consent, setConsent] = useState(false);
+  const [stkStep, setStkStep] = useState(1); // 1: pick amount  2: enter phone  3: waiting  4: success
   const [error, setError] = useState('');
 
-  const handleDonate = () => {
-    setError('');
-    if (!amount || parseInt(amount) < 10) {
-      setError('Minimum donation is KSh 10');
-      return;
-    }
-    if (!phone.trim()) {
-      setError('Enter your M-Pesa number');
-      return;
-    }
-    if (!/^(?:0|\+?254)\d{9}$/.test(phone.replace(/\s/g, ''))) {
-      setError('Enter a valid Kenyan number (07XX...)');
-      return;
-    }
-    setStep(2);
-    setTimeout(() => setStep(3), 3500);
-  };
+  const selectedAmount =
+    amount || (customAmount ? parseInt(customAmount, 10) : null);
 
-  const reset = () => {
-    setStep(1);
-    setAmount('');
-    setPhone('');
+  function handleStkSubmit() {
+    if (!selectedAmount || selectedAmount < 10) {
+      setError('Please enter a valid amount (min KSh 10)');
+      return;
+    }
+    if (!validatePhone(phone)) {
+      setError('Please enter a valid Safaricom or Airtel number');
+      return;
+    }
+    if (!consent) {
+      setError('Please consent to continue.');
+      return;
+    }
     setError('');
-  };
+    setStkStep(3);
+    // Simulated STK push — replaced with real Daraja call in feature/mpesa-integration
+    setTimeout(() => setStkStep(4), 3000);
+  }
+
+  function resetStk() {
+    setAmount(null);
+    setCustomAmount('');
+    setPhone('');
+    setConsent(false);
+    setStkStep(1);
+    setError('');
+  }
+
+  const tabBtn = (active) => ({
+    flex: 1,
+    padding: '12px 0',
+    fontWeight: 600,
+    fontSize: 14,
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: 8,
+    background: active ? C.green : 'transparent',
+    color: active ? C.white : C.muted,
+    transition: 'all 0.2s'
+  });
+
+  const inputBase = (hasError) => ({
+    width: '100%',
+    padding: '13px 14px',
+    borderRadius: 8,
+    border: `2px solid ${hasError ? '#ef4444' : C.border}`,
+    fontSize: 15,
+    boxSizing: 'border-box',
+    outline: 'none',
+    color: C.text,
+    background: C.white,
+    fontFamily: 'inherit'
+  });
 
   return (
     <section
       id='donate'
-      style={{ background: C.goldLight, padding: '5rem 1.5rem' }}
+      style={{ background: C.greenLight, padding: '80px 0' }}
     >
-      <div style={{ maxWidth: 1060, margin: '0 auto', textAlign: 'center' }}>
-        <div
-          style={{
-            color: C.green,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 3.5,
-            marginBottom: 12
-          }}
-        >
-          SUPPORT THE CAMPAIGN
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 24px' }}>
+        {/* Heading */}
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <span
+            style={{
+              display: 'inline-block',
+              background: C.goldLight,
+              color: C.green,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              padding: '4px 16px',
+              borderRadius: 999,
+              marginBottom: 16
+            }}
+          >
+            Support the Campaign
+          </span>
+          <h2
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color: C.text,
+              margin: '0 0 8px'
+            }}
+          >
+            Donate via M-Pesa
+          </h2>
+          <p style={{ color: C.muted, margin: 0 }}>
+            Every contribution powers the movement.
+          </p>
         </div>
-        <h2
-          style={{
-            color: C.green,
-            fontSize: '1.9rem',
-            fontWeight: 800,
-            marginBottom: '.75rem'
-          }}
-        >
-          Donate via M-Pesa
-        </h2>
-        <p style={{ color: C.muted, lineHeight: 1.7, marginBottom: '2.5rem' }}>
-          Every shilling goes directly to ground operations. No admin overhead.
-        </p>
 
+        {/* Card */}
         <div
           style={{
             background: C.white,
             borderRadius: 16,
-            padding: '2rem',
-            boxShadow: '0 2px 20px rgba(0,0,0,.06)',
-            maxWidth: 520,
-            margin: '0 auto'
+            padding: 32,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
           }}
         >
-          {/* Step 1 — Form */}
-          {step === 1 && (
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          {/* Tab switcher */}
+          <div
+            style={{
+              display: 'flex',
+              background: C.greenLight,
+              borderRadius: 10,
+              padding: 4,
+              marginBottom: 28,
+              gap: 4
+            }}
+          >
+            <button
+              style={tabBtn(tab === 'stk')}
+              onClick={() => {
+                setTab('stk');
+                resetStk();
+              }}
             >
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: 8
-                }}
-              >
-                {quickAmounts.map((a) => (
-                  <button
-                    key={a}
-                    onClick={() => setAmount(a)}
+              STK Push
+            </button>
+            <button
+              style={tabBtn(tab === 'paybill')}
+              onClick={() => setTab('paybill')}
+            >
+              Paybill
+            </button>
+          </div>
+
+          {/* ── STK PUSH TAB ── */}
+          {tab === 'stk' && (
+            <>
+              {stkStep === 1 && (
+                <div>
+                  <p style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>
+                    Choose an amount — we'll send a prompt directly to your
+                    phone.
+                  </p>
+                  <div
+                    className='grid grid-cols-2 md:grid-cols-3'
                     style={{
-                      border: `2px solid ${amount === a ? C.green : C.border}`,
-                      background: amount === a ? C.green : C.white,
-                      color: amount === a ? C.white : C.green,
-                      borderRadius: 8,
-                      padding: '10px 4px',
-                      fontWeight: 700,
-                      fontSize: 14,
-                      cursor: 'pointer'
+                      gap: 10,
+                      marginBottom: 16
                     }}
                   >
-                    {parseInt(a) >= 1000 ? `${parseInt(a) / 1000}K` : a}
+                    {QUICK_AMOUNTS.map((a) => (
+                      <button
+                        key={a}
+                        onClick={() => {
+                          setAmount(a);
+                          setCustomAmount('');
+                        }}
+                        style={{
+                          padding: '12px 8px',
+                          borderRadius: 8,
+                          border: `2px solid ${amount === a ? C.green : C.border}`,
+                          background: amount === a ? C.greenLight : C.white,
+                          color: amount === a ? C.green : C.text,
+                          fontWeight: 600,
+                          fontSize: 14,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        KSh {a.toLocaleString()}
+                      </button>
+                    ))}
+                    <input
+                      type='number'
+                      placeholder='Other'
+                      value={customAmount}
+                      onChange={(e) => {
+                        setCustomAmount(e.target.value);
+                        setAmount(null);
+                      }}
+                      style={{
+                        ...inputBase(false),
+                        border: `2px solid ${customAmount ? C.green : C.border}`,
+                        padding: '12px 8px',
+                        textAlign: 'center'
+                      }}
+                    />
+                  </div>
+                  <button
+                    onClick={() => selectedAmount && setStkStep(2)}
+                    disabled={!selectedAmount}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: selectedAmount ? C.green : C.border,
+                      color: C.white,
+                      fontWeight: 700,
+                      fontSize: 15,
+                      cursor: selectedAmount ? 'pointer' : 'not-allowed',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    Continue{' '}
+                    {selectedAmount
+                      ? `— KSh ${selectedAmount.toLocaleString()}`
+                      : ''}
                   </button>
-                ))}
-              </div>
-              <input
-                type='number'
-                placeholder='Or enter amount (min. KSh 10)'
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                style={{
-                  width: '100%',
-                  border: `1.5px solid ${C.border}`,
-                  borderRadius: 8,
-                  padding: '12px 14px',
-                  fontSize: 14,
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit'
-                }}
-              />
-              <input
-                placeholder='M-Pesa number (07XX XXX XXX)'
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                style={{
-                  width: '100%',
-                  border: `1.5px solid ${C.border}`,
-                  borderRadius: 8,
-                  padding: '12px 14px',
-                  fontSize: 14,
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit'
-                }}
-              />
-              {error && (
-                <div style={{ color: '#EF4444', fontSize: 13 }}>{error}</div>
+                </div>
               )}
-              <button
-                onClick={handleDonate}
-                style={{
-                  background: C.green,
-                  color: C.white,
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: 14,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  cursor: 'pointer'
-                }}
-              >
-                {amount
-                  ? `Send KSh ${parseInt(amount).toLocaleString()} via M-Pesa`
-                  : 'Send Donation via M-Pesa'}
-              </button>
-              <div style={{ fontSize: 12, color: C.muted }}>
-                Secure · Instant · IEBC-compliant
-              </div>
-            </div>
+
+              {stkStep === 2 && (
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      marginBottom: 20
+                    }}
+                  >
+                    <button
+                      onClick={() => setStkStep(1)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: C.muted,
+                        fontSize: 22,
+                        lineHeight: 1,
+                        padding: 0
+                      }}
+                    >
+                      ←
+                    </button>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 700, color: C.text }}>
+                        KSh {selectedAmount?.toLocaleString()}
+                      </p>
+                      <p style={{ margin: 0, fontSize: 12, color: C.muted }}>
+                        Enter your Safaricom number
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    type='tel'
+                    placeholder='07XX XXX XXX'
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setError('');
+                    }}
+                    style={{ ...inputBase(!!error), marginBottom: 16 }}
+                  />
+
+                  {/* DPA 2019 consent — required, unchecked by default */}
+                  <label
+                    style={{
+                      display: 'flex',
+                      gap: 10,
+                      alignItems: 'flex-start',
+                      cursor: 'pointer',
+                      marginBottom: 12
+                    }}
+                  >
+                    <input
+                      type='checkbox'
+                      checked={consent}
+                      onChange={(e) => {
+                        setConsent(e.target.checked);
+                        setError('');
+                      }}
+                      style={{
+                        marginTop: 3,
+                        width: 18,
+                        height: 18,
+                        accentColor: C.green,
+                        flexShrink: 0,
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span
+                      style={{ fontSize: 13, color: C.text, lineHeight: 1.5 }}
+                    >
+                      I consent to the {CANDIDATE.nameShort} {CANDIDATE.year}{' '}
+                      campaign storing my contact details. See our{' '}
+                      <a
+                        href='/privacy'
+                        style={{ color: C.green, textDecoration: 'underline' }}
+                      >
+                        Privacy Policy
+                      </a>
+                      .
+                    </span>
+                  </label>
+
+                  {error && (
+                    <p
+                      style={{
+                        color: '#ef4444',
+                        fontSize: 13,
+                        margin: '0 0 12px'
+                      }}
+                    >
+                      {error}
+                    </p>
+                  )}
+                  <button
+                    onClick={handleStkSubmit}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: C.green,
+                      color: C.white,
+                      fontWeight: 700,
+                      fontSize: 15,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    Send M-Pesa Prompt
+                  </button>
+                </div>
+              )}
+
+              {stkStep === 3 && (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>📱</div>
+                  <h3 style={{ color: C.text, margin: '0 0 8px' }}>
+                    Check your phone
+                  </h3>
+                  <p style={{ color: C.muted, margin: 0 }}>
+                    An M-Pesa prompt has been sent to <strong>{phone}</strong>.
+                    <br />
+                    Enter your PIN to complete the payment.
+                  </p>
+                </div>
+              )}
+
+              {stkStep === 4 && (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+                  <h3 style={{ color: C.green, margin: '0 0 8px' }}>
+                    Asante sana!
+                  </h3>
+                  <p style={{ color: C.muted, margin: '0 0 24px' }}>
+                    Your donation of{' '}
+                    <strong>KSh {selectedAmount?.toLocaleString()}</strong> has
+                    been received. Thank you for supporting the campaign.
+                  </p>
+                  <button
+                    onClick={resetStk}
+                    style={{
+                      padding: '10px 24px',
+                      borderRadius: 8,
+                      border: `2px solid ${C.green}`,
+                      background: 'transparent',
+                      color: C.green,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    Donate Again
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Step 2 — Processing */}
-          {step === 2 && (
-            <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  border: `3px solid ${C.greenLight}`,
-                  borderTopColor: C.green,
-                  borderRadius: '50%',
-                  margin: '0 auto 1.25rem',
-                  animation: 'spin .7s linear infinite'
-                }}
-              />
-              <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 17,
-                  color: C.green,
-                  marginBottom: 8
-                }}
-              >
-                Check your phone
-              </div>
-              <div style={{ color: C.muted, fontSize: 14 }}>
-                An M-Pesa prompt was sent to <strong>{phone}</strong>. Enter
-                your PIN to confirm KSh {parseInt(amount).toLocaleString()}.
-              </div>
-            </div>
-          )}
+          {/* ── PAYBILL TAB ── */}
+          {tab === 'paybill' && (
+            <div>
+              <p style={{ fontSize: 13, color: C.muted, marginBottom: 24 }}>
+                Send any amount directly from your M-Pesa menu — no prompt
+                required, available 24/7.
+              </p>
 
-          {/* Step 3 — Success */}
-          {step === 3 && (
-            <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
+              {/* Paybill details card */}
               <div
                 style={{
                   background: C.greenLight,
-                  borderRadius: '50%',
-                  width: 60,
-                  height: 60,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1rem',
-                  fontSize: 24,
-                  color: C.green
+                  borderRadius: 12,
+                  padding: 24,
+                  marginBottom: 24
                 }}
               >
-                ✓
+                <div style={{ marginBottom: 20 }}>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: C.muted,
+                      margin: '0 0 4px'
+                    }}
+                  >
+                    Paybill Number
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 28,
+                      fontWeight: 700,
+                      color: C.green,
+                      margin: 0,
+                      letterSpacing: '0.06em'
+                    }}
+                  >
+                    {CANDIDATE.paybill}
+                  </p>
+                </div>
+                <div>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: C.muted,
+                      margin: '0 0 4px'
+                    }}
+                  >
+                    Account Number
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 700,
+                      color: C.text,
+                      margin: 0
+                    }}
+                  >
+                    {CANDIDATE.accountNo}
+                  </p>
+                </div>
               </div>
-              <div
+
+              {/* Step-by-step */}
+              <p
                 style={{
-                  fontWeight: 800,
-                  fontSize: 20,
-                  color: C.green,
-                  marginBottom: 8
-                }}
-              >
-                Thank you!
-              </div>
-              <div
-                style={{ color: C.muted, fontSize: 14, marginBottom: '1.5rem' }}
-              >
-                KSh {parseInt(amount).toLocaleString()} received. You're helping
-                build a better Westlands.
-              </div>
-              <button
-                onClick={reset}
-                style={{
-                  background: 'none',
-                  border: `1.5px solid ${C.green}`,
-                  borderRadius: 8,
-                  padding: '10px 24px',
-                  color: C.green,
+                  fontSize: 13,
                   fontWeight: 600,
-                  fontSize: 14,
-                  cursor: 'pointer'
+                  color: C.text,
+                  margin: '0 0 12px'
                 }}
               >
-                Donate again
-              </button>
+                How to pay:
+              </p>
+              {[
+                'Go to M-Pesa on your phone',
+                'Select Lipa na M-Pesa → Pay Bill',
+                `Enter Business No: ${CANDIDATE.paybill}`,
+                `Enter Account No: ${CANDIDATE.accountNo}`,
+                'Enter your donation amount',
+                'Enter your M-Pesa PIN and confirm'
+              ].map((step, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    marginBottom: 10
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      background: C.green,
+                      color: C.white,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      marginTop: 1
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 14,
+                      color: C.text,
+                      lineHeight: 1.5
+                    }}
+                  >
+                    {step}
+                  </p>
+                </div>
+              ))}
+
+              <div
+                style={{
+                  marginTop: 24,
+                  padding: '12px 16px',
+                  background: C.goldLight,
+                  borderRadius: 8,
+                  borderLeft: `3px solid ${C.gold}`
+                }}
+              >
+                <p style={{ margin: 0, fontSize: 12, color: C.text }}>
+                  You'll receive an M-Pesa confirmation SMS. Screenshot it and
+                  share on WhatsApp — the team will send a personal thank-you.
+                </p>
+              </div>
             </div>
           )}
         </div>

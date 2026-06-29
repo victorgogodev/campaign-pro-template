@@ -1,244 +1,417 @@
 import { useState } from 'react';
 import { C } from '../constants/theme';
+import { CANDIDATE, WARDS } from '../constants/candidate';
 
-const wards = [
-  'Kangemi',
-  'Mountain View',
-  'Highridge',
-  'Parklands/Highridge',
-  'Kitisuru',
-  'North Mwimuto',
-  'Nyathuna'
-];
-const skills = [
-  'Canvassing / Door knocking',
-  'Social media',
-  'Event logistics',
-  'Transport',
-  'Data & Tech',
-  'Legal / Professional'
-];
+function validatePhone(phone) {
+  const cleaned = phone.replace(/\s/g, '');
+  return (
+    /^(07|01)\d{8}$/.test(cleaned) ||
+    /^\+254\d{9}$/.test(cleaned) ||
+    /^254\d{9}$/.test(cleaned)
+  );
+}
+
+const empty = {
+  fullName: '',
+  phone: '',
+  ward: '',
+  nationalId: '',
+  pollingStation: '',
+  consent: false
+};
 
 export default function VolunteerForm() {
-  const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    ward: '',
-    skill: ''
-  });
+  const [tab, setTab] = useState('volunteer'); // 'volunteer' | 'agent'
+  const [form, setForm] = useState({ ...empty });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = 'Full name is required';
-    if (!form.phone.trim()) e.phone = 'Phone number is required';
-    else if (!/^(?:0|\+?254)\d{9}$/.test(form.phone.replace(/\s/g, '')))
-      e.phone = 'Enter a valid Kenyan number (07XX...)';
-    if (!form.ward) e.ward = 'Please select your ward';
-    return e;
-  };
+  function setField(key, val) {
+    setForm((prev) => ({ ...prev, [key]: val }));
+    setErrors((prev) => ({ ...prev, [key]: '' }));
+  }
 
-  const handleSubmit = () => {
-    const e = validate();
-    if (Object.keys(e).length > 0) {
-      setErrors(e);
+  function switchTab(next) {
+    setTab(next);
+    setErrors({});
+  }
+
+  function validate() {
+    const errs = {};
+    if (!form.fullName.trim()) errs.fullName = 'Required';
+    if (!validatePhone(form.phone))
+      errs.phone = 'Enter a valid Kenyan mobile number (07XX or 01XX)';
+    if (!form.ward) errs.ward = 'Please select your ward';
+
+    if (tab === 'agent') {
+      if (!/^\d{7,8}$/.test(form.nationalId.trim()))
+        errs.nationalId = 'Enter a valid 7–8 digit National ID number';
+      if (!form.pollingStation.trim()) errs.pollingStation = 'Required';
+    }
+
+    if (!form.consent)
+      errs.consent = 'Please consent to be contacted to continue.';
+
+    return errs;
+  }
+
+  function handleSubmit() {
+    const errs = validate();
+    if (Object.keys(errs).length) {
+      setErrors(errs);
       return;
     }
+    // TODO (backend phase): POST form data to /api/volunteer or /api/agent
     setSubmitted(true);
-  };
+  }
 
-  const field = (key) => ({
-    value: form[key],
-    onChange: (ev) => {
-      setForm({ ...form, [key]: ev.target.value });
-      setErrors({ ...errors, [key]: '' });
-    },
-    style: {
-      width: '100%',
-      border: `1.5px solid ${errors[key] ? '#EF4444' : C.border}`,
-      borderRadius: 8,
-      padding: '12px 14px',
-      fontSize: 14,
-      outline: 'none',
-      boxSizing: 'border-box',
-      fontFamily: 'inherit',
-      background: C.white
-    }
+  const tabBtn = (active) => ({
+    flex: 1,
+    padding: '12px 0',
+    fontWeight: 600,
+    fontSize: 14,
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: 8,
+    background: active ? C.green : 'transparent',
+    color: active ? C.white : C.muted,
+    transition: 'all 0.2s',
+    fontFamily: 'inherit'
   });
 
-  return (
-    <section
-      id='volunteer'
-      style={{ padding: '5rem 1.5rem', background: C.bg }}
-    >
-      <div
+  const inputBase = (hasError) => ({
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: 8,
+    border: `2px solid ${hasError ? '#ef4444' : C.border}`,
+    fontSize: 15,
+    boxSizing: 'border-box',
+    outline: 'none',
+    color: C.text,
+    background: C.white,
+    fontFamily: 'inherit'
+  });
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: 13,
+    fontWeight: 600,
+    color: C.text,
+    marginBottom: 6
+  };
+
+  const errorMsg = (key) =>
+    errors[key] ? (
+      <span
         style={{
-          maxWidth: 1060,
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '3.5rem',
-          alignItems: 'center'
+          color: '#ef4444',
+          fontSize: 12,
+          marginTop: 4,
+          display: 'block'
         }}
       >
-        {/* Left copy */}
-        <div>
-          <div
-            style={{
-              color: C.gold,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 3.5,
-              marginBottom: 12
-            }}
-          >
-            GET INVOLVED
-          </div>
-          <h2
-            style={{
-              color: C.green,
-              fontSize: '1.9rem',
-              fontWeight: 800,
-              marginBottom: '1rem'
-            }}
-          >
-            Join the Movement
+        {errors[key]}
+      </span>
+    ) : null;
+
+  const hint = (text) => (
+    <span
+      style={{ color: C.muted, fontSize: 11, marginTop: 4, display: 'block' }}
+    >
+      {text}
+    </span>
+  );
+
+  // ── Success state ──
+  if (submitted) {
+    return (
+      <section id='volunteer' style={{ background: C.bg, padding: '80px 0' }}>
+        <div
+          style={{
+            maxWidth: 560,
+            margin: '0 auto',
+            padding: '0 24px',
+            textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🙌</div>
+          <h2 style={{ color: C.green, fontSize: 32, margin: '0 0 12px' }}>
+            {tab === 'agent' ? 'Application Received!' : "You're In!"}
           </h2>
           <p
             style={{
               color: C.muted,
-              lineHeight: 1.75,
-              fontSize: 15,
-              marginBottom: '1.25rem'
+              maxWidth: 400,
+              margin: '0 auto',
+              lineHeight: 1.6
             }}
           >
-            We need people on the ground — knocking doors, organizing meetings,
-            and spreading the word. Whatever your skill, there's a role for you.
+            {tab === 'agent'
+              ? 'Thank you for applying as a Polling Agent. Our legal team will contact you with your official assignment and briefing details before Election Day.'
+              : `Thank you for joining the ${CANDIDATE.nameShort} campaign. Our team will be in touch shortly with next steps.`}
           </p>
-          <div
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section id='volunteer' style={{ background: C.bg, padding: '80px 0' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 24px' }}>
+        {/* Heading */}
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <span
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              color: C.muted,
-              fontSize: 14
+              display: 'inline-block',
+              background: C.greenLight,
+              color: C.green,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              padding: '4px 16px',
+              borderRadius: 999,
+              marginBottom: 16
             }}
           >
-            <span style={{ color: C.green, fontSize: 18 }}>👥</span>
-            <span>
-              <strong style={{ color: C.green }}>3,200+</strong> volunteers
-              already signed up
-            </span>
-          </div>
+            Get Involved
+          </span>
+          <h2
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color: C.text,
+              margin: '0 0 8px'
+            }}
+          >
+            Join the Campaign
+          </h2>
+          <p style={{ color: C.muted, margin: 0 }}>
+            Whether you volunteer or serve as a polling agent — your role
+            matters.
+          </p>
         </div>
 
-        {/* Form card */}
+        {/* Card */}
         <div
           style={{
             background: C.white,
             borderRadius: 16,
-            padding: '2rem',
-            boxShadow: '0 2px 20px rgba(0,0,0,.06)',
-            border: `1px solid ${C.border}`
+            padding: 32,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
           }}
         >
-          {!submitted ? (
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          {/* Tab switcher */}
+          <div
+            style={{
+              display: 'flex',
+              background: C.greenLight,
+              borderRadius: 10,
+              padding: 4,
+              marginBottom: 28,
+              gap: 4
+            }}
+          >
+            <button
+              style={tabBtn(tab === 'volunteer')}
+              onClick={() => switchTab('volunteer')}
             >
-              <div>
-                <input placeholder='Full name' {...field('name')} />
-                {errors.name && (
-                  <div style={{ color: '#EF4444', fontSize: 12, marginTop: 4 }}>
-                    {errors.name}
-                  </div>
-                )}
-              </div>
-              <div>
-                <input
-                  placeholder='Phone number (07XX XXX XXX)'
-                  {...field('phone')}
-                />
-                {errors.phone && (
-                  <div style={{ color: '#EF4444', fontSize: 12, marginTop: 4 }}>
-                    {errors.phone}
-                  </div>
-                )}
-              </div>
-              <div>
-                <select {...field('ward')}>
-                  <option value=''>Select your ward</option>
-                  {wards.map((w) => (
-                    <option key={w} value={w}>
-                      {w}
-                    </option>
-                  ))}
-                </select>
-                {errors.ward && (
-                  <div style={{ color: '#EF4444', fontSize: 12, marginTop: 4 }}>
-                    {errors.ward}
-                  </div>
-                )}
-              </div>
-              <select {...field('skill')}>
-                <option value=''>How can you help? (optional)</option>
-                {skills.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={handleSubmit}
+              Volunteer
+            </button>
+            <button
+              style={tabBtn(tab === 'agent')}
+              onClick={() => switchTab('agent')}
+            >
+              Polling Agent
+            </button>
+          </div>
+
+          {/* Polling agent explainer — only show on agent tab */}
+          {tab === 'agent' && (
+            <div
+              style={{
+                background: C.goldLight,
+                borderLeft: `3px solid ${C.gold}`,
+                borderRadius: 8,
+                padding: '12px 16px',
+                marginBottom: 24
+              }}
+            >
+              <p
                 style={{
-                  background: C.green,
-                  color: C.white,
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: 14,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  cursor: 'pointer',
-                  width: '100%'
+                  margin: 0,
+                  fontSize: 13,
+                  color: C.text,
+                  lineHeight: 1.6
                 }}
               >
-                Sign Up as Volunteer
-              </button>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-              <div
-                style={{
-                  background: C.greenLight,
-                  borderRadius: '50%',
-                  width: 60,
-                  height: 60,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1rem',
-                  fontSize: 24
-                }}
-              >
-                ✓
-              </div>
-              <div
-                style={{
-                  fontWeight: 800,
-                  fontSize: 19,
-                  color: C.green,
-                  marginBottom: 6
-                }}
-              >
-                You're in, {form.name.split(' ')[0]}!
-              </div>
-              <div style={{ color: C.muted, fontSize: 14, lineHeight: 1.6 }}>
-                Our team will reach out on <strong>{form.phone}</strong>{' '}
-                shortly. Welcome to the movement.
-              </div>
+                <strong>Polling Agents</strong> are legally appointed campaign
+                representatives who observe voting and tallying at their
+                assigned polling station on Election Day. You will be officially
+                gazetted and receive a campaign legal briefing before August 10,
+                2027.
+              </p>
             </div>
           )}
+
+          {/* Full Names */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Full Names</label>
+            <input
+              style={inputBase(!!errors.fullName)}
+              value={form.fullName}
+              onChange={(e) => setField('fullName', e.target.value)}
+              placeholder='e.g. Mary Achieng Otieno'
+            />
+            {errorMsg('fullName')}
+          </div>
+
+          {/* Phone */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Phone Number</label>
+            <input
+              type='tel'
+              style={inputBase(!!errors.phone)}
+              value={form.phone}
+              onChange={(e) => setField('phone', e.target.value)}
+              placeholder='07XX XXX XXX'
+            />
+            {errorMsg('phone')}
+            {!errors.phone &&
+              hint(
+                'Safaricom or Airtel. Used for campaign WhatsApp and SMS updates.'
+              )}
+          </div>
+
+          {/* Ward */}
+          <div style={{ marginBottom: tab === 'agent' ? 16 : 24 }}>
+            <label style={labelStyle}>Ward</label>
+            <select
+              style={{ ...inputBase(!!errors.ward), cursor: 'pointer' }}
+              value={form.ward}
+              onChange={(e) => setField('ward', e.target.value)}
+            >
+              <option value=''>Select your ward</option>
+              {WARDS.map((w) => (
+                <option key={w} value={w}>
+                  {w}
+                </option>
+              ))}
+            </select>
+            {errorMsg('ward')}
+          </div>
+
+          {/* Polling agent extra fields */}
+          {tab === 'agent' && (
+            <>
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>National ID Number</label>
+                <input
+                  type='text'
+                  inputMode='numeric'
+                  style={inputBase(!!errors.nationalId)}
+                  value={form.nationalId}
+                  onChange={(e) =>
+                    setField('nationalId', e.target.value.replace(/\D/g, ''))
+                  }
+                  placeholder='12345678'
+                  maxLength={8}
+                />
+                {errorMsg('nationalId')}
+                {!errors.nationalId &&
+                  hint(
+                    'Required for official IEBC gazettement as a polling agent.'
+                  )}
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <label style={labelStyle}>Preferred Polling Station</label>
+                <input
+                  type='text'
+                  style={inputBase(!!errors.pollingStation)}
+                  value={form.pollingStation}
+                  onChange={(e) => setField('pollingStation', e.target.value)}
+                  placeholder='e.g. Kangemi Primary School'
+                />
+                {errorMsg('pollingStation')}
+                {!errors.pollingStation &&
+                  hint(
+                    'Enter the polling station closest to you. Final assignment confirmed by the campaign team.'
+                  )}
+              </div>
+            </>
+          )}
+
+          {/* DPA 2019 consent — required, unchecked by default */}
+          <div style={{ marginBottom: 20 }}>
+            <label
+              style={{
+                display: 'flex',
+                gap: 10,
+                alignItems: 'flex-start',
+                cursor: 'pointer'
+              }}
+            >
+              <input
+                type='checkbox'
+                checked={form.consent}
+                onChange={(e) => setField('consent', e.target.checked)}
+                style={{
+                  marginTop: 3,
+                  width: 18,
+                  height: 18,
+                  accentColor: C.green,
+                  flexShrink: 0,
+                  cursor: 'pointer'
+                }}
+              />
+              <span style={{ fontSize: 13, color: C.text, lineHeight: 1.5 }}>
+                I consent to the {CANDIDATE.nameShort} {CANDIDATE.year} campaign
+                contacting me by SMS and WhatsApp.
+              </span>
+            </label>
+            {errorMsg('consent')}
+            <span
+              style={{
+                color: C.muted,
+                fontSize: 11,
+                marginTop: 6,
+                display: 'block',
+                paddingLeft: 28
+              }}
+            >
+              You can opt out anytime — reply STOP to any SMS to unsubscribe.
+              See our{' '}
+              <a
+                href='/privacy'
+                style={{ color: C.green, textDecoration: 'underline' }}
+              >
+                Privacy Policy
+              </a>
+              .
+            </span>
+          </div>
+
+          {/* Submit */}
+          <button
+            onClick={handleSubmit}
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: 8,
+              border: 'none',
+              background: C.green,
+              color: C.white,
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: 'pointer',
+              fontFamily: 'inherit'
+            }}
+          >
+            {tab === 'agent'
+              ? 'Submit Polling Agent Application'
+              : 'Join the Campaign'}
+          </button>
         </div>
       </div>
     </section>
